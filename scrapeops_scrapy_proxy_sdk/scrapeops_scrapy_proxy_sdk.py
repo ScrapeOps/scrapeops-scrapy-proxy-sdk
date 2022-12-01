@@ -1,4 +1,4 @@
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse, parse_qs
 from scrapy import Request
 
 class ScrapeOpsScrapyProxySdk(object):
@@ -8,33 +8,48 @@ class ScrapeOpsScrapyProxySdk(object):
         return cls(crawler.settings)
 
     def __init__(self, settings):
+        self.scrapeops_proxy_settings = {}
         self.scrapeops_api_key = settings.get('SCRAPEOPS_API_KEY')
         self.scrapeops_endpoint = 'https://proxy.scrapeops.io/v1/?'
         self.scrapeops_proxy_active = settings.get('SCRAPEOPS_PROXY_ENABLED', False)
+        self._clean_proxy_settings(settings.get('SCRAPEOPS_PROXY_SETTINGS'))
+
+    def _clean_proxy_settings(self, proxy_settings):
+        if proxy_settings is not None:
+            for key, value in proxy_settings.items():
+                clean_key = key.replace('sops_', '')
+                self.scrapeops_proxy_settings[clean_key] = value
 
     @staticmethod
-    def _param_is_true(request, key):
-        if request.meta.get(key) or request.meta.get(key, 'false').lower() == 'true':
-            return True
-        return False
+    def _get_requested_url(url):
+        parsed_url = urlparse(url)
+        raw_url = parse_qs(parsed_url.query).get('url', url)
+        if isinstance(raw_url, str) or isinstance(raw_url, bytes):
+            return raw_url
+        elif isinstance(raw_url, list):
+            return ''.join([str(elem) for elem in raw_url])
 
     @staticmethod
     def _replace_response_url(response):
         real_url = response.headers.get(
-            'Sops-Final-Url', def_val=response.url)
+            'Sops-Final-Url', def_val=ScrapeOpsScrapyProxySdk._get_requested_url(response.url))
         return response.replace(
             url=real_url.decode(response.headers.encoding))
     
     def _get_scrapeops_url(self, request):
         payload = {'api_key': self.scrapeops_api_key, 'url': request.url}
-        if self._param_is_true(request, 'sops_render_js'):
-            payload['render_js'] = True
-        if self._param_is_true(request, 'sops_residential'): 
-            payload['residential'] = True
-        if self._param_is_true(request, 'sops_keep_headers'): 
-            payload['keep_headers'] = True
-        if request.meta.get('sops_country') is not None:
-            payload['country'] = request.meta.get('sops_country')
+
+        ## Global Request Settings
+        if self.scrapeops_proxy_settings is not None:
+            for key, value in self.scrapeops_proxy_settings.items():
+                payload[key] = value
+
+        ## Request Level Settings 
+        for key, value in request.meta.items():
+            if 'sops_' in key:
+                clean_key = key.replace('sops_', '')
+                payload[clean_key] = value
+
         proxy_url = self.scrapeops_endpoint + urlencode(payload)
         return proxy_url
 

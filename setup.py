@@ -1,14 +1,14 @@
 from setuptools import setup, find_packages
 
 
-DESCRIPTION = 'Scrapeops Scrapy Proxy SDK, simple integration of the scrapeops proxy with your scrapy spiders.'
+DESCRIPTION = 'Scrapeops Scrapy Proxy SDK, simple integration to use the Scrapeops Proxy API with your Scrapy Spiders.'
 
 setup(name="scrapeops_scrapy_proxy_sdk",
       description=DESCRIPTION,
       long_description=DESCRIPTION,
       author="ScrapeOps",
       author_email="info@scrapeops.io",
-      version="0.22",
+      version="1.0",
       license="BSD",
       url="https://github.com/ScrapeOps/scrapeops-scrapy-proxy-sdk",
       packages=find_packages(),
