@@ -54,7 +54,7 @@ class ScrapeOpsScrapyProxySdk(object):
         return proxy_url
 
     def _scrapeops_proxy_enabled(self):
-        if self.scrapeops_api_key is None or self.scrapeops_api_key == '' or self.scrapeops_proxy_active == False:
+        if not self.scrapeops_api_key or not self.scrapeops_proxy_active:
             return False
         return True
     
