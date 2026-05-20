@@ -1,5 +1,5 @@
 from urllib.parse import urlencode, urlparse, parse_qs
-from scrapy import Request
+
 
 class ScrapeOpsScrapyProxySdk(object):
 
@@ -57,14 +57,13 @@ class ScrapeOpsScrapyProxySdk(object):
         if not self.scrapeops_api_key or not self.scrapeops_proxy_active:
             return False
         return True
-    
+
     def process_request(self, request, spider):
         if self._scrapeops_proxy_enabled() is False or self.scrapeops_endpoint in request.url:
             return None
         
         scrapeops_url = self._get_scrapeops_url(request)
-        new_request = request.replace(
-            cls=Request, url=scrapeops_url, meta=request.meta)
+        new_request = request.replace(url=scrapeops_url, meta=request.meta)
         return new_request
 
     def process_response(self, request, response, spider):
