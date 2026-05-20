@@ -59,7 +59,7 @@ class ScrapeOpsScrapyProxySdk(object):
         return True
 
     def process_request(self, request, spider):
-        if not self._scrapeops_proxy_enabled() or self.scrapeops_endpoint in request.url:
+        if self._scrapeops_proxy_enabled() is False or self.scrapeops_endpoint in request.url:
             return None
         
         scrapeops_url = self._get_scrapeops_url(request)
